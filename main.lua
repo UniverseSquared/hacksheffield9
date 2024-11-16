@@ -69,7 +69,9 @@ function love.mousepressed(x, y, button, istouch, presses)
             local dy = point_y - player_y
             local angle = math.atan2(dy, dx) - math.pi / 2
 
-            table.insert(vines, { from = from, to = to, angle = angle })
+            local length = math.sqrt(math.pow(to[1] - from[1], 2) + math.pow(to[2] - from[2], 2))
+
+            table.insert(vines, { from = from, to = to, angle = angle, length = length })
 
             break
         end
@@ -83,7 +85,19 @@ function love.draw()
     end
 
     for _, vine in pairs(vines) do
-        love.graphics.draw(vine_image, vine.from[1], vine.from[2], vine.angle, 0.1, 0.1)
+        local image_height = vine_image:getHeight()
+        local sf = (1 / image_height) * vine.length
+
+        love.graphics.draw(
+            vine_image,
+            vine.from[1],
+            vine.from[2],
+            vine.angle,
+            0.1,
+            sf,
+            image_height / 4,
+            0
+        )
     end
 
     local render_x = player_x - player_image_width / 2
