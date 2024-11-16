@@ -29,6 +29,8 @@ function love.load()
     player_image_width = player_image:getWidth() * player_scale
     player_image_height = player_image:getHeight() * player_scale
 
+    vine_image = love.graphics.newImage("assets/vine1.png")
+
     vine_points = generate_random_points(50)
 end
 
@@ -63,8 +65,11 @@ function love.mousepressed(x, y, button, istouch, presses)
             local from = { player_x, player_y }
             local to = { point_x, point_y }
 
-            table.insert(vines, { from = from, to = to })
-            print("did the thing")
+            local dx = point_x - player_x
+            local dy = point_y - player_y
+            local angle = math.atan2(dy, dx) - math.pi / 2
+
+            table.insert(vines, { from = from, to = to, angle = angle })
 
             break
         end
@@ -75,6 +80,10 @@ function love.draw()
     love.graphics.setColor(0.278, 0.439, 0.211)
     for _, point in pairs(vine_points) do
         love.graphics.circle("fill", point[1], point[2], vine_point_radius)
+    end
+
+    for _, vine in pairs(vines) do
+        love.graphics.draw(vine_image, vine.from[1], vine.from[2], vine.angle, 0.1, 0.1)
     end
 
     local render_x = player_x - player_image_width / 2
