@@ -68,17 +68,25 @@ function love.update(dt)
     end
 
     local completed = {}
+    local removed_collectibles = {}
+
     for index, arm in pairs(collector_arms) do
         arm.animation_length_modifier =
             arm.animation_length_modifier - 0.1 * dt * arm_retraction_animation_speed
 
         if arm.animation_length_modifier <= 0.001 then
             table.insert(completed, 1, index)
+            table.insert(removed_collectibles, arm.collectible_index)
         end
     end
 
     for _, index in pairs(completed) do
         table.remove(collector_arms, index)
+    end
+
+    -- FIXME: instead of just removing the collectibles, we should animate them with the arm
+    for _, index in pairs(removed_collectibles) do
+        table.remove(collectibles, index)
     end
 end
 
@@ -104,7 +112,7 @@ local function vine_point_clicked(point_x, point_y)
     table.insert(vines, { from = from, to = to, angle = angle, length = length })
 end
 
-local function collectible_clicked(index, collectible)
+local function collectible_clicked(collectible_index, collectible)
     local to = { collectible[1], collectible[2] }
     local angle = angle_between(player_x, player_y, to[1], to[2])
 
@@ -112,6 +120,7 @@ local function collectible_clicked(index, collectible)
         collector_arms,
         {
             to = to,
+            collectible_index = collectible_index,
             angle = angle,
             animation_length_modifier = 1,
         }
