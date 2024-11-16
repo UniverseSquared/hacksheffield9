@@ -10,6 +10,7 @@ local vines = {} -- { from = {x, y}, to = {x, y} }
 local vine_point_radius = 10
 
 local collectibles = {}
+local collector_arms = {}
 
 local function generate_random_points(n)
     local points = {}
@@ -66,6 +67,12 @@ function love.update(dt)
     end
 end
 
+local function angle_between(x1, y1, x2, y2)
+    local dx = x2 - x1
+    local dy = y2 - y1
+    return math.atan2(dy, dx) - math.pi / 2
+end
+
 local function point_intersects_circle(point_x, point_y, centre_x, centre_y, radius)
     local square_distance = math.pow(centre_x - point_x, 2) + math.pow(centre_y - point_y, 2)
     return square_distance <= math.pow(radius, 2)
@@ -75,17 +82,20 @@ local function vine_point_clicked(point_x, point_y)
     local from = { player_x, player_y }
     local to = { point_x, point_y }
 
-    local dx = point_x - player_x
-    local dy = point_y - player_y
-    local angle = math.atan2(dy, dx) - math.pi / 2
+    local angle = angle_between(player_x, player_y, point_x, point_y)
 
     local length = math.sqrt(math.pow(to[1] - from[1], 2) + math.pow(to[2] - from[2], 2))
 
     table.insert(vines, { from = from, to = to, angle = angle, length = length })
 end
 
-local function collectible_clicked(collectible)
-    print("a collectible was clicked")
+local function collectible_clicked(index, collectible)
+    local to = { collectible[1], collectible[2] }
+    local angle = angle_between(player_x, player_y, to[1], to[2])
+
+    local length = math.sqrt(math.pow(to[1] - player_x, 2) + math.pow(to[2] - player_y, 2))
+
+    table.insert(collector_arms, { to = to, angle = angle, length = length })
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
@@ -98,11 +108,11 @@ function love.mousepressed(x, y, button, istouch, presses)
         end
     end
 
-    for _, collectible in pairs(collectibles) do
+    for index, collectible in pairs(collectibles) do
         local point_x, point_y = unpack(collectible)
 
         if point_intersects_circle(point_x, point_y, x, y, vine_point_radius) then
-            collectible_clicked(collectible)
+            collectible_clicked(index, collectible)
             break
         end
     end
@@ -129,6 +139,28 @@ function love.draw()
             vine.from[1],
             vine.from[2],
             vine.angle,
+            0.1,
+            sf,
+            image_height / 4,
+            0
+        )
+    end
+
+    for _, point in pairs(collector_arms) do
+        local angle = angle_between(player_x, player_y, point.to[1], point.to[2])
+
+        local length = math.sqrt(
+            math.pow(point.to[1] - player_x, 2) + math.pow(point.to[2] - player_y, 2)
+        )
+
+        local image_height = vine_image:getHeight()
+        local sf = (1 / image_height) * length
+
+        love.graphics.draw(
+            vine_image,
+            player_x,
+            player_y,
+            angle,
             0.1,
             sf,
             image_height / 4,
