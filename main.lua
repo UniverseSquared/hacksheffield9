@@ -1,8 +1,23 @@
+local screen_width = 640
+local screen_height = 480
+
 local player_x = 300
 local player_y = 300
 
+local function generate_random_points(n)
+    local points = {}
+    for index = 1, n do
+        local x = love.math.random(screen_width)
+        local y = love.math.random(screen_height)
+        table.insert(points, { x, y })
+    end
+
+    return points
+end
+
 function love.load()
     player_image = love.graphics.newImage("assets/main_character.png")
+    vine_points = generate_random_points(50)
 end
 
 function love.update(dt)
@@ -28,6 +43,11 @@ function love.update(dt)
 end
 
 function love.draw()
+    love.graphics.setColor(0.278, 0.439, 0.211)
+    for _, point in pairs(vine_points) do
+        love.graphics.circle("fill", point[1], point[2], 5)
+    end
+
     love.graphics.setColor(0.929, 0.266, 0.498)
-    love.graphics.draw(player_image, player_x, player_y, 0, 0.15, 0.15)
+    love.graphics.draw(player_image, player_x, player_y, 0, 0.1, 0.1)
 end
