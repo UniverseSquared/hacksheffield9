@@ -28,19 +28,19 @@ function love.update(dt)
         love.event.quit()
     end
 
-    if love.keyboard.isDown("up") then
+    if love.keyboard.isDown("w") then
         player_y = player_y - 100 * dt
     end
 
-    if love.keyboard.isDown("down") then
+    if love.keyboard.isDown("s") then
         player_y = player_y + 100 * dt
     end
 
-    if love.keyboard.isDown("left") then
+    if love.keyboard.isDown("a") then
         player_x = player_x - 100 * dt
     end
 
-    if love.keyboard.isDown("right") then
+    if love.keyboard.isDown("d") then
         player_x = player_x + 100 * dt
     end
 end
