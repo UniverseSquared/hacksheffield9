@@ -11,6 +11,7 @@ local vine_point_radius = 10
 
 local collectibles = {}
 local collector_arms = {}
+local arm_retraction_animation_speed = 4
 
 local function generate_random_points(n)
     local points = {}
@@ -65,6 +66,20 @@ function love.update(dt)
     if love.keyboard.isDown("d") then
         player_x = player_x + 100 * dt
     end
+
+    local completed = {}
+    for index, arm in pairs(collector_arms) do
+        arm.animation_length_modifier =
+            arm.animation_length_modifier - 0.1 * dt * arm_retraction_animation_speed
+
+        if arm.animation_length_modifier <= 0.001 then
+            table.insert(completed, 1, index)
+        end
+    end
+
+    for _, index in pairs(completed) do
+        table.remove(collector_arms, index)
+    end
 end
 
 local function angle_between(x1, y1, x2, y2)
@@ -93,9 +108,14 @@ local function collectible_clicked(index, collectible)
     local to = { collectible[1], collectible[2] }
     local angle = angle_between(player_x, player_y, to[1], to[2])
 
-    local length = math.sqrt(math.pow(to[1] - player_x, 2) + math.pow(to[2] - player_y, 2))
-
-    table.insert(collector_arms, { to = to, angle = angle, length = length })
+    table.insert(
+        collector_arms,
+        {
+            to = to,
+            angle = angle,
+            animation_length_modifier = 1,
+        }
+    )
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
@@ -146,12 +166,14 @@ function love.draw()
         )
     end
 
-    for _, point in pairs(collector_arms) do
-        local angle = angle_between(player_x, player_y, point.to[1], point.to[2])
+    for _, arm in pairs(collector_arms) do
+        local angle = angle_between(player_x, player_y, arm.to[1], arm.to[2])
 
         local length = math.sqrt(
-            math.pow(point.to[1] - player_x, 2) + math.pow(point.to[2] - player_y, 2)
+            math.pow(arm.to[1] - player_x, 2) + math.pow(arm.to[2] - player_y, 2)
         )
+
+        length = length * arm.animation_length_modifier
 
         local image_height = vine_image:getHeight()
         local sf = (1 / image_height) * length
