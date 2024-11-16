@@ -35,12 +35,53 @@ local function generate_vine_points(n)
     return vine_points
 end
 
+local function translating_line(vine)
+    local angleOfLine = vine.angle - math.pi
+
+    
+    -- to
+    local collisionPoint1 = {
+        x = vine.to[1] + halfWidth * math.cos(angleOfLine),
+        y = vine.to[2] + halfWidth * math.sin(angleOfLine)
+    }
+
+    local collisionPoint2 = {
+        x = vine.to[1] - halfWidth * math.cos(angleOfLine),
+        y = vine.to[2] - halfWidth * math.sin(angleOfLine)
+    }
+
+    -- from
+
+    local collisionPoint3 = {
+        x = vine.from[1] + halfWidth * math.cos(angleOfLine),
+        y = vine.from[2] + halfWidth * math.sin(angleOfLine)
+    }
+
+    local collisionPoint4 = {
+        x = vine.from[1] - halfWidth * math.cos(angleOfLine),
+        y = vine.from[2] - halfWidth * math.sin(angleOfLine)
+    }
+
+    return {collisionPoint1, collisionPoint2, collisionPoint3, collisionPoint4}
+end
+
+local function finding_collision_points(vine)
+
+    return translating_line(vine)
+
+end
+
+
+
 function love.load()
     player_image = love.graphics.newImage("assets/main_character.png")
     player_image_width = player_image:getWidth() * player_scale
     player_image_height = player_image:getHeight() * player_scale
 
     vine_image = love.graphics.newImage("assets/vine1.png")
+    widthOfVine = vine_image:getWidth() * 0.1
+    halfWidth = widthOfVine / 2
+
 
     vine_points = generate_vine_points(50)
     collectibles = generate_random_points(10)
@@ -173,6 +214,14 @@ function love.draw()
             image_height / 4,
             0
         )
+
+        local points = finding_collision_points(vine)
+
+        love.graphics.setColor(1, 0, 0)
+        for _, point in pairs(points) do
+            love.graphics.circle("fill", point.x, point.y, 10)
+        end
+        love.graphics.setColor(1, 1, 1)
     end
 
     for _, arm in pairs(collector_arms) do
