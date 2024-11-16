@@ -6,6 +6,10 @@ function love.load()
 end
 
 function love.update(dt)
+    if love.keyboard.isDown("escape") then
+        love.event.quit()
+    end
+
     if love.keyboard.isDown("up") then
         player_y = player_y - 100 * dt
     end
