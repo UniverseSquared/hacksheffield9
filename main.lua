@@ -94,7 +94,9 @@ function love.draw()
             vine.from[2],
             vine.angle,
             0.1,
-            sf
+            sf,
+            image_height / 4,
+            0
         )
     end
 
