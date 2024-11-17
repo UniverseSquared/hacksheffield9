@@ -1,7 +1,6 @@
 --! file: enemy.lua
 
 local Object = require("Classic")
-
 Enemy = Object:extend()
 
 
@@ -36,7 +35,6 @@ function Enemy:update_coords(dt, player_x, player_y, angle)
     -- get angle
     if angle == nil then
         local difference = self:get_angle_difference(player_x, player_y)
-
         if difference <= math.rad(60) then
             local curr_angle = math.atan2(player_y - self.y, player_x - self.x)
             self.angle = curr_angle
