@@ -88,26 +88,72 @@ function love.load()
     enemy = Enemy(player.x, player.y)
 end
 
+local function aabb(x1, y1, x2, y2, px, py)
+    return px >= x1 and px <= x2 and py >= y1 and py <= y2
+end
+
+-- Rotate a point about an origin counterclockwise
+local function rotate(ox, oy, px, py, angle)
+    local x = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    local y = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return { x, y }
+end
+
+local function test_collision_with_vine(vine, x, y)
+    local bounding_box = finding_collision_points(vine)
+    for i = 1, #bounding_box do
+        local bx = bounding_box[i].x
+        local by = bounding_box[i].y
+        local rotated_x, rotated_y = unpack(rotate(0, 0, bx, by, -vine.angle))
+        bounding_box[i] = { x = rotated_x, y = rotated_y }
+    end
+
+    local rx, ry = unpack(rotate(0, 0, x, y, -vine.angle))
+    return aabb(bounding_box[3].x, bounding_box[3].y, bounding_box[2].x, bounding_box[2].y, rx, ry)
+end
+
+local function handle_player_movement(dt)
+    local new_player_x = player_x
+    local new_player_y = player_y
+
+    if love.keyboard.isDown("w") then
+        new_player_y = new_player_y - 100 * dt
+    end
+
+    if love.keyboard.isDown("s") then
+        new_player_y = new_player_y + 100 * dt
+    end
+
+    if love.keyboard.isDown("a") then
+        new_player_x = new_player_x - 100 * dt
+    end
+
+    if love.keyboard.isDown("d") then
+        new_player_x = new_player_x + 100 * dt
+    end
+
+    local function destination_valid(x, y)
+        for _, vine in pairs(vines) do
+            if test_collision_with_vine(vine, x, y) then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    if destination_valid(new_player_x, new_player_y) then
+        player_x = new_player_x
+        player_y = new_player_y
+    end
+end
+
 function love.update(dt)
     if love.keyboard.isDown("escape") then
         love.event.quit()
     end
 
-    if love.keyboard.isDown("w") then
-        player.y = player.y - 100 * dt
-    end
-
-    if love.keyboard.isDown("s") then
-        player.y = player.y + 100 * dt
-    end
-
-    if love.keyboard.isDown("a") then
-        player.x = player.x - 100 * dt
-    end
-
-    if love.keyboard.isDown("d") then
-        player.x = player.x + 100 * dt
-    end
+    handle_player_movement(dt)
 
     local completed = {}
     local removed_collectibles = {}
@@ -169,30 +215,6 @@ local function collectible_clicked(collectible_index, collectible)
             animation_length_modifier = 1,
         }
     )
-end
-
-local function aabb(x1, y1, x2, y2, px, py)
-    return px >= x1 and px <= x2 and py >= y1 and py <= y2
-end
-
--- Rotate a point about an origin counterclockwise
-local function rotate(ox, oy, px, py, angle)
-    local x = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-    local y = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-    return { x, y }
-end
-
-local function test_collision_with_vine(vine, x, y)
-    local bounding_box = finding_collision_points(vine)
-    for i = 1, #bounding_box do
-        local bx = bounding_box[i].x
-        local by = bounding_box[i].y
-        local rotated_x, rotated_y = unpack(rotate(0, 0, bx, by, -vine.angle))
-        bounding_box[i] = { x = rotated_x, y = rotated_y }
-    end
-
-    local rx, ry = unpack(rotate(0, 0, x, y, -vine.angle))
-    return aabb(bounding_box[3].x, bounding_box[3].y, bounding_box[2].x, bounding_box[2].y, rx, ry)
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
