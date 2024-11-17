@@ -12,6 +12,8 @@ local collectibles = {}
 local collector_arms = {}
 local arm_retraction_animation_speed = 4
 
+local collection_radius = 200
+
 local function generate_random_points(n)
     local points = {}
     for index = 1, n do
@@ -192,6 +194,10 @@ local function point_intersects_circle(point_x, point_y, centre_x, centre_y, rad
 end
 
 local function vine_point_clicked(point_x, point_y)
+    if not point_intersects_circle(point_x, point_y, player.x, player.y, collection_radius) then
+        return
+    end
+
     local from = { player.x, player.y }
     local to = { point_x, point_y }
 
@@ -203,6 +209,10 @@ local function vine_point_clicked(point_x, point_y)
 end
 
 local function collectible_clicked(collectible_index, collectible)
+    if not point_intersects_circle(collectible[1], collectible[2], player.x, player.y, collection_radius) then
+        return
+    end
+
     local to = { collectible[1], collectible[2] }
     local angle = angle_between(player.x, player.y, to[1], to[2])
 
