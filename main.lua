@@ -28,35 +28,6 @@ local function generate_vine_points(n)
     return vine_points
 end
 
-local function finding_collision_points(vine)
-    local angleOfLine = vine.angle - math.pi
-
-
-    -- to
-    local collisionPoint1 = {
-        x = vine.to[1] + halfWidth * math.cos(angleOfLine),
-        y = vine.to[2] + halfWidth * math.sin(angleOfLine)
-    }
-
-    local collisionPoint2 = {
-        x = vine.to[1] - halfWidth * math.cos(angleOfLine),
-        y = vine.to[2] - halfWidth * math.sin(angleOfLine)
-    }
-
-    -- from
-
-    local collisionPoint3 = {
-        x = vine.from[1] + halfWidth * math.cos(angleOfLine),
-        y = vine.from[2] + halfWidth * math.sin(angleOfLine)
-    }
-
-    local collisionPoint4 = {
-        x = vine.from[1] - halfWidth * math.cos(angleOfLine),
-        y = vine.from[2] - halfWidth * math.sin(angleOfLine)
-    }
-
-    return {collisionPoint1, collisionPoint2, collisionPoint3, collisionPoint4}
-end
 
 function love.load()
     player_image = love.graphics.newImage("assets/main_character.png")
@@ -65,8 +36,6 @@ function love.load()
     local player_image_height = player_image:getHeight() * player_scale
 
     vine_image = love.graphics.newImage("assets/vine1.png")
-    widthOfVine = vine_image:getWidth() * 0.1
-    halfWidth = widthOfVine / 2
 
     vine_points = generate_vine_points(50)
     collectibles = util.generate_random_points(10)
@@ -79,8 +48,39 @@ function love.load()
     enemy = Enemy(player.x, player.y)
 end
 
+local function collision_points_for_vine(vine)
+    local angle_of_line = vine.angle - math.pi
+
+    local width_of_vine = vine_image:getWidth() * 0.1
+    local half_width = width_of_vine / 2
+
+    -- to
+    local collision_point1 = {
+        x = vine.to[1] + half_width * math.cos(angle_of_line),
+        y = vine.to[2] + half_width * math.sin(angle_of_line)
+    }
+
+    local collision_point2 = {
+        x = vine.to[1] - half_width * math.cos(angle_of_line),
+        y = vine.to[2] - half_width * math.sin(angle_of_line)
+    }
+
+    -- from
+    local collision_point3 = {
+        x = vine.from[1] + half_width * math.cos(angle_of_line),
+        y = vine.from[2] + half_width * math.sin(angle_of_line)
+    }
+
+    local collision_point4 = {
+        x = vine.from[1] - half_width * math.cos(angle_of_line),
+        y = vine.from[2] - half_width * math.sin(angle_of_line)
+    }
+
+    return { collision_point1, collision_point2, collision_point3, collision_point4 }
+end
+
 local function test_collision_with_vine(vine, x, y)
-    local bounding_box = finding_collision_points(vine)
+    local bounding_box = collision_points_for_vine(vine)
     for i = 1, #bounding_box do
         local bx = bounding_box[i].x
         local by = bounding_box[i].y
