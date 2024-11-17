@@ -18,7 +18,7 @@ function Bullet:new(player_x, player_y, mx, my)
     self.height = self.image:getHeight()
 end
 
-function Bullet:checkCollision(obj)
+function Bullet:check_collision(obj)
     local self_left = self.x
     local self_right = self.x + self.width
     local self_top = self.y
