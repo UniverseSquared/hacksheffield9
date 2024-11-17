@@ -1,5 +1,7 @@
 --! file: enemy.lua
 
+local Object = require("Classic")
+
 Enemy = Object:extend()
 
 
@@ -34,13 +36,13 @@ function Enemy:update_coords(dt, player_x, player_y, angle)
     -- get angle
     if angle == nil then
         local difference = self:get_angle_difference(player_x, player_y)
-        
+
         if difference <= math.rad(60) then
             local curr_angle = math.atan2(player_y - self.y, player_x - self.x)
             self.angle = curr_angle
         else
             self.angle = self.angle + math.rad(20)
-        end    
+        end
     else
         self.angle = angle
     end
@@ -51,12 +53,12 @@ function Enemy:update_coords(dt, player_x, player_y, angle)
 
     -- enemy towards player
     self.x = self.x + self.speed * cos * dt
-    self.y = self.y + self.speed * sin * dt 
+    self.y = self.y + self.speed * sin * dt
 end
 
 function Enemy:check_collision(entity)
     -- entity will be the other entity with which we check if there is collision
-    return self.x + self.width > entity.x 
+    return self.x + self.width > entity.x
     and self.x < entity.x + entity.width
     and self.y + self.height > entity.y
     and self.y < entity.y + entity.height
@@ -99,3 +101,5 @@ end
 function Enemy:draw()
     love.graphics.draw(self.image, self.x, self.y, 0, 0.1, 0.1)
 end
+
+return Enemy
