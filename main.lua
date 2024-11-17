@@ -30,6 +30,8 @@ local function generate_vine_points(n)
 end
 
 function love.load()
+    
+
     player_image = love.graphics.newImage("assets/main_character.png")
 
     local player_image_width = player_image:getWidth() * player_scale
@@ -149,6 +151,10 @@ local function collectible_clicked(collectible_index, collectible)
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
+    
+    -- x = x + player.x
+    -- y = y + player.y
+
     for _, vine in pairs(vines) do
         if vine:test_collision(x, y) then
             print("you clicked a vine")
@@ -157,12 +163,16 @@ function love.mousepressed(x, y, button, istouch, presses)
 
     for _, point in pairs(vine_points) do
         local point_x, point_y = unpack(point)
+        
 
         if util.point_intersects_circle(point_x, point_y, x, y, vine_point_radius) then
             vine_point_clicked(point_x, point_y)
             break
         end
+        
     end
+
+
 
     for index, collectible in pairs(collectibles) do
         local point_x, point_y = unpack(collectible)
@@ -175,6 +185,11 @@ function love.mousepressed(x, y, button, istouch, presses)
 end
 
 function love.draw()
+
+    -- love.graphics.translate(-player.x + 400, -player.y + 300)
+    
+    
+    
     love.graphics.setColor(0.278, 0.439, 0.211)
     for _, point in pairs(vine_points) do
         love.graphics.circle("fill", point[1], point[2], vine_point_radius)
@@ -226,11 +241,19 @@ function love.draw()
         )
     end
 
-    local render_x = player.x - player.width / 2
-    local render_y = player.y - player.height / 2
 
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
+        
+        
+        local render_x = player.x - player.width / 2
+        local render_y = player.y - player.height / 2
+
+
+        
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
+
+        
+
 
     enemy:draw()
 end
