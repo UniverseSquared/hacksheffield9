@@ -49,6 +49,8 @@ function love.load()
     player.height = player_image_height
 
     enemy = Enemy(player.x, player.y)
+
+    timer = love.timer.getTime()
 end
 
 local function handle_player_movement(dt)
@@ -157,7 +159,12 @@ end
 
 function love.mousepressed(x, y, button, istouch, presses)
     if button == 2 then
-        table.insert(bullets, Bullet(player.x, player.y, x, y))
+        local td = love.timer.getTime() - timer
+
+        if td >= 1 then
+            timer = love.timer.getTime()
+            table.insert(bullets, Bullet(player.x, player.y, x, y))
+        end
         return
     end
         for _, vine in pairs(vines) do
