@@ -85,19 +85,6 @@ local function handle_player_movement(dt)
         player.x = new_player_x
         player.y = new_player_y
     end
-
-    vine_points = generate_random_points(50)
-
-    Object = require "Classic"
-    require "enemy"
-
-    enemy = Enemy(player_x, player_y)
-
-    player = {}
-    player.x = player_x
-    player.y = player_y
-    player.width = player_image_width
-    player.height = player_image_height
 end
 
 function love.update(dt)
@@ -128,11 +115,6 @@ function love.update(dt)
     for _, index in pairs(removed_collectibles) do
         table.remove(collectibles, index)
     end
-
-    player.x = player_x
-    player.y = player_y
-    player.width = player_image_width
-    player.height = player_image_height
 
     enemy:update(dt, player)
 
