@@ -113,8 +113,8 @@ local function test_collision_with_vine(vine, x, y)
 end
 
 local function handle_player_movement(dt)
-    local new_player_x = player_x
-    local new_player_y = player_y
+    local new_player_x = player.x
+    local new_player_y = player.y
 
     if love.keyboard.isDown("w") then
         new_player_y = new_player_y - 100 * dt
@@ -143,8 +143,8 @@ local function handle_player_movement(dt)
     end
 
     if destination_valid(new_player_x, new_player_y) then
-        player_x = new_player_x
-        player_y = new_player_y
+        player.x = new_player_x
+        player.y = new_player_y
     end
 end
 
