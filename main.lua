@@ -11,6 +11,7 @@ local player = {}
 local player_scale = 0.1
 
 local bullets = {}
+local enemies = {}
 
 local vines = {}
 local vine_point_radius = 10
@@ -58,15 +59,17 @@ function love.load()
     player.y = screen_height / 2
     player.width = player_image_width
     player.height = player_image_height
+    player.hp = 100
+    player.collectibles = {}
+    player.seeds = 0
 
     vine_points = generate_vine_points(50)
     discover_nearby_vine_points()
 
     collectibles = util.generate_random_points(10)
 
-    enemy = Enemy(player.x, player.y)
-
     timer = love.timer.getTime()
+    enemy_timer = love.timer.getTime()
 end
 
 local function handle_player_movement(dt)
@@ -136,10 +139,31 @@ function love.update(dt)
         table.remove(collectibles, index)
     end
 
-    enemy:update(dt, player)
+    local etd = love.timer.getTime() - enemy_timer
 
-    for _, v in ipairs(bullets) do
+    if etd >= 7 then
+        enemy_timer = love.timer.getTime()
+        table.insert(enemies, Enemy(player.x, player.y))
+    end
+    
+    for _, enemy in pairs(enemies) do
+        enemy:update(dt, player)
+    end
+
+    for i, v in ipairs(bullets) do
         v:update(dt)
+
+        for i, enemy in pairs(enemies) do
+            if v:check_collision(enemy) then
+                enemy.hp = enemy.hp - 15
+
+                if enemy.hp <= 0 then
+                    table.remove(enemies, i)
+                end
+            
+                table.remove(bullets, i)
+            end
+        end
     end
 end
 
@@ -268,7 +292,9 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
 
-    enemy:draw()
+    for _, enemy in pairs(enemies) do
+        enemy:draw()
+    end
 
     for _,v in ipairs(bullets) do
         v:draw()

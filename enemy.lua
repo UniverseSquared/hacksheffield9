@@ -18,11 +18,15 @@ function Enemy:new(player_x, player_y)
     self.y = love.math.random(love.graphics.getHeight())
 
     self.speed = 80
+    self.hp = 40
+    self.atk = 15
 
     -- image width and height
     self.width = self.image:getWidth() * 0.1
     self.height = self.image:getHeight() * 0.1
     self.angle = math.atan2(player_y - self.y, player_x - self.x)
+
+    self.timer = love.timer.getTime()
 end
 
 function Enemy:update_coords(dt, player_x, player_y)
@@ -45,6 +49,18 @@ function Enemy:check_collision(entity)
     and self.y < entity.y + entity.height
 end
 
+function Enemy:attack(player)
+    player.hp = player.hp - 15
+
+    -- if false, player dead
+    if player.hp < 0 then
+        return false
+    else
+        -- if player alive, true
+        return true
+    end
+end
+    
 function Enemy:update(dt, entity)
     self:update_coords(dt, entity.x, entity.y)
 
@@ -59,6 +75,14 @@ function Enemy:update(dt, entity)
         self.y = 0
     elseif self.y + self.height > window_height then
         self.y = window_height - self.height
+    end
+
+    if self:check_collision(entity) and (love.timer.getTime() - self.timer) > 2 then
+        self.timer = love.timer.getTime()
+
+        if not self:attack(entity) then
+            error("You died")
+        end
     end
 end
 
