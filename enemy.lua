@@ -76,7 +76,6 @@ end
 
 function Enemy:update(dt, entity)
     if self:check_collision(entity) then
-        print("COLLIED")
         self:update_coords(dt, entity.x, entity.y, self.angle)
     else
         self:update_coords(dt, entity.x, entity.y)
