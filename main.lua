@@ -1,6 +1,7 @@
 local states = {
     title_screen = require("title_screen"),
-    game = require("game")
+    game = require("game"),
+    win = require("win")
 }
 
 local current_state
@@ -13,7 +14,7 @@ function switch_state(new_state)
     end
 end
 
-switch_state("title_screen")
+switch_state("game")
 
 function love.update(dt)
     if states[current_state].update then

@@ -37,8 +37,10 @@ local function generate_vine_points(n)
     local vine_points = util.generate_random_points(n - 1)
 
     for i, point in pairs(vine_points) do
-        vine_points[i] = { x = point[1], y = point[2], discovered = false }
+        vine_points[i] = { x = point[1], y = point[2], discovered = false, is_exit = false }
     end
+
+    vine_points[love.math.random(#vine_points)].is_exit = true
 
     -- Ensure that the player always spawns on top of a vine point
     local centre_x = screen_width / 2 - vine_point_radius / 2
@@ -58,6 +60,7 @@ function game_state.load()
 
     player.x = screen_width / 2
     player.y = screen_height / 2
+    player.hp = 100
     player.width = player_image_width
     player.height = player_image_height
 
@@ -69,6 +72,21 @@ function game_state.load()
     enemy = Enemy(player.x, player.y)
 
     timer = love.timer.getTime()
+end
+
+local function check_win()
+    for _, point in pairs(vine_points) do
+        local intersecting = util.point_intersects_circle(
+            player.x, player.y,
+            point.x, point.y,
+            vine_point_radius
+        )
+
+        if point.is_exit and intersecting then
+            switch_state("win")
+            return
+        end
+    end
 end
 
 local function handle_player_movement(dt)
@@ -106,6 +124,7 @@ local function handle_player_movement(dt)
         player.y = new_player_y
 
         discover_nearby_vine_points()
+        check_win()
     end
 end
 
@@ -211,9 +230,14 @@ function game_state.mousepressed(x, y, button, istouch, presses)
 end
 
 function game_state.draw()
-    love.graphics.setColor(0.278, 0.439, 0.211)
     for _, point in pairs(vine_points) do
         if point.discovered then
+            if point.is_exit then
+                love.graphics.setColor(0.458, 0.098, 0.717)
+            else
+                love.graphics.setColor(0.278, 0.439, 0.211)
+            end
+
             love.graphics.circle("fill", point.x, point.y, vine_point_radius)
         end
     end
