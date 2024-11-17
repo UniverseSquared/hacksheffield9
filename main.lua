@@ -38,7 +38,7 @@ end
 local function translating_line(vine)
     local angleOfLine = vine.angle - math.pi
 
-    
+
     -- to
     local collisionPoint1 = {
         x = vine.to[1] + halfWidth * math.cos(angleOfLine),
@@ -82,9 +82,19 @@ function love.load()
     widthOfVine = vine_image:getWidth() * 0.1
     halfWidth = widthOfVine / 2
 
-
     vine_points = generate_vine_points(50)
     collectibles = generate_random_points(10)
+
+    Object = require "Classic"
+    require "enemy"
+
+    enemy = Enemy(player_x, player_y)
+
+    player = {}
+    player.x = player_x
+    player.y = player_y
+    player.width = player_image_width
+    player.height = player_image_height
 end
 
 function love.update(dt)
@@ -129,6 +139,13 @@ function love.update(dt)
     for _, index in pairs(removed_collectibles) do
         table.remove(collectibles, index)
     end
+
+    player.x = player_x
+    player.y = player_y
+    player.width = player_image_width
+    player.height = player_image_height
+
+    enemy:update(dt, player)
 end
 
 local function angle_between(x1, y1, x2, y2)
@@ -253,4 +270,6 @@ function love.draw()
 
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
+
+    enemy:draw()
 end
