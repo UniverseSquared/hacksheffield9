@@ -60,8 +60,8 @@ function love.load()
     player.width = player_image_width
     player.height = player_image_height
     player.hp = 100
-    player.collectibles = {}
-    player.seeds = 0
+    player.collected = 0
+    player.seeds = 4
 
     vine_points = generate_vine_points(50)
     discover_nearby_vine_points()
@@ -137,6 +137,7 @@ function love.update(dt)
     -- FIXME: instead of just removing the collectibles, we should animate them with the arm
     for _, index in pairs(removed_collectibles) do
         table.remove(collectibles, index)
+        player.collected = player.collected + 1
     end
 
     local etd = love.timer.getTime() - enemy_timer
@@ -159,6 +160,7 @@ function love.update(dt)
 
                 if enemy.hp <= 0 then
                     table.remove(enemies, i)
+                    player.seeds = player.seeds + 1
                 end
             
                 table.remove(bullets, i)
@@ -172,6 +174,12 @@ local function vine_point_clicked(point_x, point_y)
         return
     end
 
+    if player.seeds < 2 then
+        return
+    else
+        player.seeds = player.seeds - 2
+    end
+    
     local from = { player.x, player.y }
     local to = { point_x, point_y }
     table.insert(vines, Vine(from, to))
@@ -300,4 +308,5 @@ function love.draw()
         v:draw()
     end
 
+    love.graphics.print("HP: " ..player.hp.. " / Collectibles: " ..player.collected.. "/ Seeds: " ..player.seeds, 20, 20)
 end

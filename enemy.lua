@@ -17,13 +17,13 @@ function Enemy:new(player_x, player_y)
     self.x = love.math.random(love.graphics.getWidth())
     self.y = love.math.random(love.graphics.getHeight())
 
-    self.speed = 80
+    self.speed = 60
     self.hp = 40
     self.atk = 15
 
     -- image width and height
-    self.width = self.image:getWidth() * 0.1
-    self.height = self.image:getHeight() * 0.1
+    self.width = self.image:getWidth() * 0.03
+    self.height = self.image:getHeight() * 0.03
     self.angle = math.atan2(player_y - self.y, player_x - self.x)
 
     self.timer = love.timer.getTime()
@@ -87,7 +87,7 @@ function Enemy:update(dt, entity)
 end
 
 function Enemy:draw()
-    love.graphics.draw(self.image, self.x, self.y, 0, 0.1, 0.1)
+    love.graphics.draw(self.image, self.x, self.y, 0, 0.03, 0.03)
 end
 
 return Enemy
