@@ -12,6 +12,7 @@ local player = {}
 
 local player_scale = 0.1
 
+local enemies = {}
 local bullets = {}
 
 local vines = {}
@@ -60,9 +61,11 @@ function game_state.load()
 
     player.x = screen_width / 2
     player.y = screen_height / 2
-    player.hp = 100
     player.width = player_image_width
     player.height = player_image_height
+    player.hp = 100
+    player.collected = 0
+    player.seeds = 4
 
     vine_points = generate_vine_points(50)
     discover_nearby_vine_points()
@@ -72,6 +75,7 @@ function game_state.load()
     enemy = Enemy(player.x, player.y)
 
     timer = love.timer.getTime()
+    enemy_timer = love.timer.getTime()
 end
 
 local function check_win()
@@ -157,10 +161,32 @@ function game_state.update(dt)
         table.remove(collectibles, index)
     end
 
-    enemy:update(dt, player)
+    local etd = love.timer.getTime() - enemy_timer
 
-    for _, v in ipairs(bullets) do
+    if etd >= 7 then
+        enemy_timer = love.timer.getTime()
+        table.insert(enemies, Enemy(player.x, player.y))
+    end
+
+    for _, enemy in pairs(enemies) do
+        enemy:update(dt, player)
+    end
+
+    for i, v in ipairs(bullets) do
         v:update(dt)
+
+        for i, enemy in pairs(enemies) do
+            if v:check_collision(enemy) then
+                enemy.hp = enemy.hp - 15
+
+                if enemy.hp <= 0 then
+                    table.remove(enemies, i)
+                    player.seeds = player.seeds + 1
+                end
+
+                table.remove(bullets, i)
+            end
+        end
     end
 end
 
@@ -294,12 +320,15 @@ function game_state.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
 
-    enemy:draw()
+    for _, enemy in pairs(enemies) do
+        enemy:draw()
+    end
 
     for _,v in ipairs(bullets) do
         v:draw()
     end
 
+    love.graphics.print("HP: " ..player.hp.. " / Collectibles: " ..player.collected.. "/ Seeds: " ..player.seeds, 20, 20)
 end
 
 return game_state
