@@ -1,6 +1,7 @@
 local Enemy = require("enemy")
 local Vine = require("vine")
 local util = require("util")
+local Bullet = require("bullet")
 
 local screen_width = 800
 local screen_height = 600
@@ -8,6 +9,8 @@ local screen_height = 600
 local player = {}
 
 local player_scale = 0.1
+
+local bullets = {}
 
 local vines = {}
 local vine_point_radius = 10
@@ -114,6 +117,10 @@ function love.update(dt)
     end
 
     enemy:update(dt, player)
+
+    for _, v in ipairs(bullets) do
+        v:update(dt)
+    end
 end
 
 local function vine_point_clicked(point_x, point_y)
@@ -149,7 +156,11 @@ local function collectible_clicked(collectible_index, collectible)
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
-    for _, vine in pairs(vines) do
+    if button == 2 then
+        table.insert(bullets, Bullet(player.x, player.y, x, y))
+        return
+    end
+        for _, vine in pairs(vines) do
         if vine:test_collision(x, y) then
             print("you clicked a vine")
         end
@@ -233,4 +244,9 @@ function love.draw()
     love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
 
     enemy:draw()
+
+    for _,v in ipairs(bullets) do
+        v:draw()
+    end
+
 end
