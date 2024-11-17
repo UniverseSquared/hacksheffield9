@@ -1,4 +1,5 @@
 local Enemy = require("enemy")
+local Vine = require("vine")
 local util = require("util")
 
 local screen_width = 800
@@ -8,7 +9,7 @@ local player = {}
 
 local player_scale = 0.1
 
-local vines = {} -- { from = {x, y}, to = {x, y} }
+local vines = {}
 local vine_point_radius = 10
 
 local collectibles = {}
@@ -28,7 +29,6 @@ local function generate_vine_points(n)
     return vine_points
 end
 
-
 function love.load()
     player_image = love.graphics.newImage("assets/main_character.png")
 
@@ -46,50 +46,6 @@ function love.load()
     player.height = player_image_height
 
     enemy = Enemy(player.x, player.y)
-end
-
-local function collision_points_for_vine(vine)
-    local angle_of_line = vine.angle - math.pi
-
-    local width_of_vine = vine_image:getWidth() * 0.1
-    local half_width = width_of_vine / 2
-
-    -- to
-    local collision_point1 = {
-        x = vine.to[1] + half_width * math.cos(angle_of_line),
-        y = vine.to[2] + half_width * math.sin(angle_of_line)
-    }
-
-    local collision_point2 = {
-        x = vine.to[1] - half_width * math.cos(angle_of_line),
-        y = vine.to[2] - half_width * math.sin(angle_of_line)
-    }
-
-    -- from
-    local collision_point3 = {
-        x = vine.from[1] + half_width * math.cos(angle_of_line),
-        y = vine.from[2] + half_width * math.sin(angle_of_line)
-    }
-
-    local collision_point4 = {
-        x = vine.from[1] - half_width * math.cos(angle_of_line),
-        y = vine.from[2] - half_width * math.sin(angle_of_line)
-    }
-
-    return { collision_point1, collision_point2, collision_point3, collision_point4 }
-end
-
-local function test_collision_with_vine(vine, x, y)
-    local bounding_box = collision_points_for_vine(vine)
-    for i = 1, #bounding_box do
-        local bx = bounding_box[i].x
-        local by = bounding_box[i].y
-        local rotated_x, rotated_y = unpack(util.rotate(0, 0, bx, by, -vine.angle))
-        bounding_box[i] = { x = rotated_x, y = rotated_y }
-    end
-
-    local rx, ry = unpack(util.rotate(0, 0, x, y, -vine.angle))
-    return util.aabb(bounding_box[3].x, bounding_box[3].y, bounding_box[2].x, bounding_box[2].y, rx, ry)
 end
 
 local function handle_player_movement(dt)
@@ -114,7 +70,7 @@ local function handle_player_movement(dt)
 
     local function destination_valid(x, y)
         for _, vine in pairs(vines) do
-            if test_collision_with_vine(vine, x, y) then
+            if vine:test_collision(x, y) then
                 return true
             end
         end
@@ -167,12 +123,7 @@ local function vine_point_clicked(point_x, point_y)
 
     local from = { player.x, player.y }
     local to = { point_x, point_y }
-
-    local angle = util.angle_between(player.x, player.y, point_x, point_y)
-
-    local length = math.sqrt(math.pow(to[1] - from[1], 2) + math.pow(to[2] - from[2], 2))
-
-    table.insert(vines, { from = from, to = to, angle = angle, length = length })
+    table.insert(vines, Vine(from, to))
 end
 
 local function collectible_clicked(collectible_index, collectible)
@@ -199,7 +150,7 @@ end
 
 function love.mousepressed(x, y, button, istouch, presses)
     for _, vine in pairs(vines) do
-        if test_collision_with_vine(vine, x, y) then
+        if vine:test_collision(x, y) then
             print("you clicked a vine")
         end
     end
