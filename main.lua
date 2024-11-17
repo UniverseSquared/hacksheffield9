@@ -20,14 +20,28 @@ local collector_arms = {}
 local arm_retraction_animation_speed = 4
 
 local collection_radius = 200
+local vine_point_discovery_radius = 200
+
+local function discover_nearby_vine_points()
+    for _, point in pairs(vine_points) do
+        local square_distance = math.pow(player.x - point.x, 2) + math.pow(player.y - point.y, 2)
+        if square_distance <= math.pow(vine_point_discovery_radius, 2) then
+            point.discovered = true
+        end
+    end
+end
 
 local function generate_vine_points(n)
     local vine_points = util.generate_random_points(n - 1)
 
+    for i, point in pairs(vine_points) do
+        vine_points[i] = { x = point[1], y = point[2], discovered = false }
+    end
+
     -- Ensure that the player always spawns on top of a vine point
     local centre_x = screen_width / 2 - vine_point_radius / 2
     local centre_y = screen_height / 2 - vine_point_radius / 2
-    table.insert(vine_points, { centre_x, centre_y })
+    table.insert(vine_points, { x = centre_x, y = centre_y, discovered = true })
 
     return vine_points
 end
@@ -40,13 +54,15 @@ function love.load()
 
     vine_image = love.graphics.newImage("assets/vine1.png")
 
-    vine_points = generate_vine_points(50)
-    collectibles = util.generate_random_points(10)
-
     player.x = screen_width / 2
     player.y = screen_height / 2
     player.width = player_image_width
     player.height = player_image_height
+
+    vine_points = generate_vine_points(50)
+    discover_nearby_vine_points()
+
+    collectibles = util.generate_random_points(10)
 
     enemy = Enemy(player.x, player.y)
 
@@ -86,6 +102,8 @@ local function handle_player_movement(dt)
     if destination_valid(new_player_x, new_player_y) then
         player.x = new_player_x
         player.y = new_player_y
+
+        discover_nearby_vine_points()
     end
 end
 
@@ -174,10 +192,8 @@ function love.mousepressed(x, y, button, istouch, presses)
     end
 
     for _, point in pairs(vine_points) do
-        local point_x, point_y = unpack(point)
-
-        if util.point_intersects_circle(point_x, point_y, x, y, vine_point_radius) then
-            vine_point_clicked(point_x, point_y)
+        if util.point_intersects_circle(point.x, point.y, x, y, vine_point_radius) then
+            vine_point_clicked(point.x, point.y)
             break
         end
     end
@@ -195,7 +211,9 @@ end
 function love.draw()
     love.graphics.setColor(0.278, 0.439, 0.211)
     for _, point in pairs(vine_points) do
-        love.graphics.circle("fill", point[1], point[2], vine_point_radius)
+        if point.discovered then
+            love.graphics.circle("fill", point.x, point.y, vine_point_radius)
+        end
     end
 
     love.graphics.setColor(0.929, 0.701, 0.211)
