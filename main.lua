@@ -1,8 +1,7 @@
 local screen_width = 800
 local screen_height = 600
 
-local player_x = screen_width / 2
-local player_y = screen_height / 2
+local player = {}
 
 local player_scale = 0.1
 
@@ -75,8 +74,9 @@ end
 
 function love.load()
     player_image = love.graphics.newImage("assets/main_character.png")
-    player_image_width = player_image:getWidth() * player_scale
-    player_image_height = player_image:getHeight() * player_scale
+
+    local player_image_width = player_image:getWidth() * player_scale
+    local player_image_height = player_image:getHeight() * player_scale
 
     vine_image = love.graphics.newImage("assets/vine1.png")
     widthOfVine = vine_image:getWidth() * 0.1
@@ -85,16 +85,15 @@ function love.load()
     vine_points = generate_vine_points(50)
     collectibles = generate_random_points(10)
 
+    player.x = screen_width / 2
+    player.y = screen_height / 2
+    player.width = player_image_width
+    player.height = player_image_height
+
     Object = require "Classic"
     require "enemy"
 
-    enemy = Enemy(player_x, player_y)
-
-    player = {}
-    player.x = player_x
-    player.y = player_y
-    player.width = player_image_width
-    player.height = player_image_height
+    enemy = Enemy(player.x, player.y)
 end
 
 function love.update(dt)
@@ -103,19 +102,19 @@ function love.update(dt)
     end
 
     if love.keyboard.isDown("w") then
-        player_y = player_y - 100 * dt
+        player.y = player.y - 100 * dt
     end
 
     if love.keyboard.isDown("s") then
-        player_y = player_y + 100 * dt
+        player.y = player.y + 100 * dt
     end
 
     if love.keyboard.isDown("a") then
-        player_x = player_x - 100 * dt
+        player.x = player.x - 100 * dt
     end
 
     if love.keyboard.isDown("d") then
-        player_x = player_x + 100 * dt
+        player.x = player.x + 100 * dt
     end
 
     local completed = {}
@@ -140,11 +139,6 @@ function love.update(dt)
         table.remove(collectibles, index)
     end
 
-    player.x = player_x
-    player.y = player_y
-    player.width = player_image_width
-    player.height = player_image_height
-
     enemy:update(dt, player)
 end
 
@@ -160,10 +154,10 @@ local function point_intersects_circle(point_x, point_y, centre_x, centre_y, rad
 end
 
 local function vine_point_clicked(point_x, point_y)
-    local from = { player_x, player_y }
+    local from = { player.x, player.y }
     local to = { point_x, point_y }
 
-    local angle = angle_between(player_x, player_y, point_x, point_y)
+    local angle = angle_between(player.x, player.y, point_x, point_y)
 
     local length = math.sqrt(math.pow(to[1] - from[1], 2) + math.pow(to[2] - from[2], 2))
 
@@ -172,7 +166,7 @@ end
 
 local function collectible_clicked(collectible_index, collectible)
     local to = { collectible[1], collectible[2] }
-    local angle = angle_between(player_x, player_y, to[1], to[2])
+    local angle = angle_between(player.x, player.y, to[1], to[2])
 
     table.insert(
         collector_arms,
@@ -242,10 +236,10 @@ function love.draw()
     end
 
     for _, arm in pairs(collector_arms) do
-        local angle = angle_between(player_x, player_y, arm.to[1], arm.to[2])
+        local angle = angle_between(player.x, player.y, arm.to[1], arm.to[2])
 
         local length = math.sqrt(
-            math.pow(arm.to[1] - player_x, 2) + math.pow(arm.to[2] - player_y, 2)
+            math.pow(arm.to[1] - player.x, 2) + math.pow(arm.to[2] - player.y, 2)
         )
 
         length = length * arm.animation_length_modifier
@@ -255,8 +249,8 @@ function love.draw()
 
         love.graphics.draw(
             vine_image,
-            player_x,
-            player_y,
+            player.x,
+            player.y,
             angle,
             0.1,
             sf,
@@ -265,8 +259,8 @@ function love.draw()
         )
     end
 
-    local render_x = player_x - player_image_width / 2
-    local render_y = player_y - player_image_height / 2
+    local render_x = player.x - player.width / 2
+    local render_y = player.y - player.height / 2
 
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
