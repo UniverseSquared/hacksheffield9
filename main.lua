@@ -34,7 +34,7 @@ local function generate_vine_points(n)
     return vine_points
 end
 
-local function translating_line(vine)
+local function finding_collision_points(vine)
     local angleOfLine = vine.angle - math.pi
 
 
@@ -63,14 +63,6 @@ local function translating_line(vine)
 
     return {collisionPoint1, collisionPoint2, collisionPoint3, collisionPoint4}
 end
-
-local function finding_collision_points(vine)
-
-    return translating_line(vine)
-
-end
-
-
 
 function love.load()
     player_image = love.graphics.newImage("assets/main_character.png")
@@ -179,7 +171,37 @@ local function collectible_clicked(collectible_index, collectible)
     )
 end
 
+local function aabb(x1, y1, x2, y2, px, py)
+    return px >= x1 and px <= x2 and py >= y1 and py <= y2
+end
+
+-- Rotate a point about an origin counterclockwise
+local function rotate(ox, oy, px, py, angle)
+    local x = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    local y = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return { x, y }
+end
+
+local function test_collision_with_vine(vine, x, y)
+    local bounding_box = finding_collision_points(vine)
+    for i = 1, #bounding_box do
+        local bx = bounding_box[i].x
+        local by = bounding_box[i].y
+        local rotated_x, rotated_y = unpack(rotate(0, 0, bx, by, -vine.angle))
+        bounding_box[i] = { x = rotated_x, y = rotated_y }
+    end
+
+    local rx, ry = unpack(rotate(0, 0, x, y, -vine.angle))
+    return aabb(bounding_box[3].x, bounding_box[3].y, bounding_box[2].x, bounding_box[2].y, rx, ry)
+end
+
 function love.mousepressed(x, y, button, istouch, presses)
+    for _, vine in pairs(vines) do
+        if test_collision_with_vine(vine, x, y) then
+            print("you clicked a vine")
+        end
+    end
+
     for _, point in pairs(vine_points) do
         local point_x, point_y = unpack(point)
 
@@ -225,14 +247,6 @@ function love.draw()
             image_height / 4,
             0
         )
-
-        local points = finding_collision_points(vine)
-
-        love.graphics.setColor(1, 0, 0)
-        for _, point in pairs(points) do
-            love.graphics.circle("fill", point.x, point.y, 10)
-        end
-        love.graphics.setColor(1, 1, 1)
     end
 
     for _, arm in pairs(collector_arms) do
