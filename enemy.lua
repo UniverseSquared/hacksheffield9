@@ -11,15 +11,17 @@ Enemy = Object:extend()
 
 function Enemy:new(player_x, player_y)
     self.image = love.graphics.newImage("assets/dawson.png")
+
     -- makes sure gets a starting x and y coordinate within the window
+
     self.x = love.math.random(love.graphics.getWidth())
     self.y = love.math.random(love.graphics.getHeight())
+
     self.speed = 80
 
     -- image width and height
     self.width = self.image:getWidth() * 0.1
     self.height = self.image:getHeight() * 0.1
-
     self.angle = math.atan2(player_y - self.y, player_x - self.x)
 end
 
