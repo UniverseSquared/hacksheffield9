@@ -50,7 +50,8 @@ end
 
 function game_state.load()
     player_image = love.graphics.newImage("assets/main_character.png")
-
+    background_image = love.graphics.newImage("assets/cave_background.png")
+    
     local player_image_width = player_image:getWidth() * player_scale
     local player_image_height = player_image:getHeight() * player_scale
 
@@ -60,15 +61,17 @@ function game_state.load()
     player.y = screen_height / 2
     player.width = player_image_width
     player.height = player_image_height
+    player.hp = 100
+    player.collected = 0
+    player.seeds = 4
 
     vine_points = generate_vine_points(50)
     discover_nearby_vine_points()
 
     collectibles = util.generate_random_points(10)
 
-    enemy = Enemy(player.x, player.y)
-
     timer = love.timer.getTime()
+    enemy_timer = love.timer.getTime()
 end
 
 local function handle_player_movement(dt)
@@ -211,6 +214,9 @@ function game_state.mousepressed(x, y, button, istouch, presses)
 end
 
 function game_state.draw()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(background_image, 0, 0, 0, love.graphics.getWidth() / background_image:getWidth(),  love.graphics.getHeight() / background_image:getHeight())
+
     love.graphics.setColor(0.278, 0.439, 0.211)
     for _, point in pairs(vine_points) do
         if point.discovered then
