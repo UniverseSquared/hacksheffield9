@@ -194,6 +194,12 @@ local function vine_point_clicked(point_x, point_y)
         return
     end
 
+    if player.seeds < 2 then
+        return
+    else
+        player.seeds = player.seeds - 2
+    end
+
     local from = { player.x, player.y }
     local to = { point_x, point_y }
     table.insert(vines, Vine(from, to))
