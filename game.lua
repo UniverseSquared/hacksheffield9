@@ -12,6 +12,7 @@ local player = {}
 
 local player_scale = 0.1
 
+local enemies = {}
 local bullets = {}
 
 local vines = {}
@@ -37,8 +38,10 @@ local function generate_vine_points(n)
     local vine_points = util.generate_random_points(n - 1)
 
     for i, point in pairs(vine_points) do
-        vine_points[i] = { x = point[1], y = point[2], discovered = false }
+        vine_points[i] = { x = point[1], y = point[2], discovered = false, is_exit = false }
     end
+
+    vine_points[love.math.random(#vine_points)].is_exit = true
 
     -- Ensure that the player always spawns on top of a vine point
     local centre_x = screen_width / 2 - vine_point_radius / 2
@@ -72,6 +75,21 @@ function game_state.load()
 
     timer = love.timer.getTime()
     enemy_timer = love.timer.getTime()
+end
+
+local function check_win()
+    for _, point in pairs(vine_points) do
+        local intersecting = util.point_intersects_circle(
+            player.x, player.y,
+            point.x, point.y,
+            vine_point_radius
+        )
+
+        if point.is_exit and intersecting then
+            switch_state("win")
+            return
+        end
+    end
 end
 
 local function handle_player_movement(dt)
@@ -109,6 +127,7 @@ local function handle_player_movement(dt)
         player.y = new_player_y
 
         discover_nearby_vine_points()
+        check_win()
     end
 end
 
@@ -141,10 +160,32 @@ function game_state.update(dt)
         table.remove(collectibles, index)
     end
 
-    enemy:update(dt, player)
+    local etd = love.timer.getTime() - enemy_timer
 
-    for _, v in ipairs(bullets) do
+    if etd >= 7 then
+        enemy_timer = love.timer.getTime()
+        table.insert(enemies, Enemy(player.x, player.y))
+    end
+
+    for _, enemy in pairs(enemies) do
+        enemy:update(dt, player)
+    end
+
+    for i, v in ipairs(bullets) do
         v:update(dt)
+
+        for i, enemy in pairs(enemies) do
+            if v:check_collision(enemy) then
+                enemy.hp = enemy.hp - 15
+
+                if enemy.hp <= 0 then
+                    table.remove(enemies, i)
+                    player.seeds = player.seeds + 1
+                end
+
+                table.remove(bullets, i)
+            end
+        end
     end
 end
 
@@ -220,6 +261,12 @@ function game_state.draw()
     love.graphics.setColor(0.278, 0.439, 0.211)
     for _, point in pairs(vine_points) do
         if point.discovered then
+            if point.is_exit then
+                love.graphics.setColor(0.458, 0.098, 0.717)
+            else
+                love.graphics.setColor(0.278, 0.439, 0.211)
+            end
+
             love.graphics.circle("fill", point.x, point.y, vine_point_radius)
         end
     end
@@ -276,12 +323,15 @@ function game_state.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(player_image, render_x, render_y, 0, player_scale, player_scale)
 
-    enemy:draw()
+    for _, enemy in pairs(enemies) do
+        enemy:draw()
+    end
 
     for _,v in ipairs(bullets) do
         v:draw()
     end
 
+    love.graphics.print("HP: " ..player.hp.. " / Collectibles: " ..player.collected.. "/ Seeds: " ..player.seeds, 20, 20)
 end
 
 return game_state
